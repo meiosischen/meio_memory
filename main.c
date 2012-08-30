@@ -1,3 +1,9 @@
+/************************************************
+# @Author:       meiosis.chen@gmail.com
+# @revision:     0.1
+# @date:         2012-08-30
+************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

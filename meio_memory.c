@@ -16,7 +16,10 @@
 #  KIND, either express or implied.  See the License for the
 #  specific language governing permissions and limitations
 #  under the License.
-#  
+#
+# @Author:       meiosis.chen@gmail.com
+# @revision:     0.1
+# @date:         2012-08-30
 #**************************************************************/
 
 #include <stdlib.h>
@@ -149,6 +152,7 @@ inline static void _free_mem_node_list(mi_mem_node_list_t *list)
 	} while(list);
 }
 
+/* cut a new memory node from a exist memory node */
 inline static mi_mem_node_t* _mem_node_cut (mi_mem_node_t *node)
 {
 	mi_mem_node_t *new_node = NULL;
@@ -204,6 +208,7 @@ inline static mi_mem_node_t* _fetch_free_mem_node(mi_pool_t *pool, muint32 size)
 		list = list->next;
 	}
 
+    /* no more useable memory node */
 	return NULL;
 }
 
@@ -415,7 +420,9 @@ static void* mi_mem_alloc (mi_pool_t *pool, muint32 size)
 	return mi_mem_alloc_ex(pool, size, NULL);
 }
 
-static void* mi_mem_alloc_ex (mi_pool_t *pool, muint32 size, void ( *func )(void*, muint32))
+static void* mi_mem_alloc_ex (mi_pool_t *pool, 
+                              muint32 size, 
+                              void ( *func )(void*, muint32))
 {
 	mi_mem_node_t *new_node = NULL;
 	mi_mem_node_list_t *new_node_list = NULL;	
@@ -430,7 +437,7 @@ static void* mi_mem_alloc_ex (mi_pool_t *pool, muint32 size, void ( *func )(void
 	if (new_node) 
 		goto done;				
 		
-	/* we need alloc a new mem node */
+	/* we need alloc a new mem node list */
 	new_node_list = _create_mem_node_list(pool, size + sizeof(_mi_mem_node_head_t));
 	new_node = new_node_list->data;
 	new_node->free_index = size;
@@ -563,7 +570,7 @@ mi_lock_op* create_mi_lock_op_default(void)
 	return lop;
 }
 
-void _show_mem_node (mi_mem_node_t *node)
+static void _show_mem_node (mi_mem_node_t *node)
 {
 	mi_mem_node_t *anode = node;
     _mi_mem_node_head_t *head;

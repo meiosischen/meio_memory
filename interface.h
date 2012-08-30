@@ -16,7 +16,10 @@
 #  KIND, either express or implied.  See the License for the
 #  specific language governing permissions and limitations
 #  under the License.
-#  
+#
+# @Author:       meiosis.chen@gmail.com
+# @revision:     0.1
+# @date:         2012-08-30
 #**************************************************************/
 
 #ifndef _MEIO_INTERFACE_H_
@@ -90,8 +93,11 @@ struct mi_lock_op
 
 struct mi_pool_op
 {
-	mi_pool_t*			( *create )(muint32 node_size, muint32 node_count, void *ctx);
-	mi_pool_t*			( *alloc )(mi_pool_t *parent, muint32 node_size, muint32 node_count);
+	mi_pool_t*			( *create )(muint32 node_size, 
+                                    muint32 node_count, void *ctx);
+	mi_pool_t*			( *alloc )(mi_pool_t *parent, 
+                                   muint32 node_size, 
+                                   muint32 node_count);
 	void				( *free )(mi_pool_t *pool);
 };
 
@@ -99,14 +105,20 @@ struct mi_mem_op
 {
 	void*				( *alloc )(mi_pool_t *pool, muint32 size);
 	void				( *free )(void *data);
-    void*               ( *alloc_ex )(mi_pool_t *pool, muint32 size, void ( *func )(void*, muint32));
+    void*               ( *alloc_ex )(mi_pool_t *pool, 
+                                      muint32 size, 
+                                      void ( *func )(void*, muint32));
 };
 
-
+/* to create operation objects */
+/* pool operation */
 mi_pool_op*		 create_mi_pool_op_default(void);
+/* memory allocator operation */
 mi_mem_op*		 create_mi_mem_op_default(void);
+/* currently, default mi_lock_op does nothing but prints a message */
 mi_lock_op*		 create_mi_lock_op_default(void);
 
+/* to view the pool's layout */
 void view_simple_pool (mi_pool_t *root);
 
 #endif

@@ -16,8 +16,13 @@
 #  KIND, either express or implied.  See the License for the
 #  specific language governing permissions and limitations
 #  under the License.
-#  
+#
+# @Author:       meiosis.chen@gmail.com
+# @revision:     0.1
+# @date:         2012-08-30
 #**************************************************************/
+
+/* @brief define constants */
 
 #ifndef _MEIO_DEFINE_H_
 #define _MEIO_DEFINE_H_
@@ -53,6 +58,10 @@ enum ENUM_RWLOCK
 	RWLOCK_WRITE				
 };
 
+/* @note the default size of a memory node to alloc
+   this is the minimal size to alloc from os
+   (not from meio_memory lib)
+*/
 #define DEFAULT_MI_MEM_NODE_SIZE		(512 * 8)
 
 #ifndef RET_IF_FALSE
