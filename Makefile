@@ -8,5 +8,5 @@ meio_memory.o : meio_memory.c interface.h define.h
 	cc -c -m32 -g -Wall meio_memory.c
 
 clean :
-	rm main.o meio_memory.o 
+	rm -f main.o meio_memory.o 
 

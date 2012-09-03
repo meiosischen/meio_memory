@@ -52,13 +52,13 @@ typedef struct mi_mem_node_op       mi_mem_node_op;
 
 struct mi_mem_node_t
 {
-    mi_pool_t			*pool;
-    mi_mem_node_t		*parent;
-    mi_mem_node_t		*child;
-    muint32				free_index;
-    mbyte				*data;
-    muint32				curr_size;
-    muint32				orig_size;
+    mi_pool_t           *pool;
+    mi_mem_node_t       *parent;
+    mi_mem_node_t       *child;
+    muint32             free_index;
+    mbyte               *data;
+    muint32             curr_size;
+    muint32             orig_size;
     void                (*func)(void*,muint32);
 };
 
@@ -109,11 +109,11 @@ struct mi_pool_op
 
 struct mi_mem_op
 {
-	void *              ( *alloc )(mi_pool_t *pool, muint32 size);
-	void                ( *free )(void *data);
-    void *              ( *alloc_ex )(mi_pool_t *pool, 
-                                     muint32 size, 
-                                     void (*func)(void*, muint32));
+    void *              (*alloc)(mi_pool_t *pool, muint32 size);
+    void                (*free)(void *data);
+    void *              (*alloc_ex)(mi_pool_t *pool, 
+                                    muint32 size, 
+                                    void (*func)(void*, muint32));
 };
 
 /* to create operation objects */
