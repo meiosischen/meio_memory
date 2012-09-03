@@ -28,22 +28,44 @@
 #include <stdarg.h>
 #include "./interface.h"
 
-static mi_pool_t*		mi_pool_create		(muint32 node_size, muint32 node_count, void *ctx);
-static mi_pool_t*		mi_pool_alloc		(mi_pool_t *parent, muint32 node_size, muint32 node_count);
-static void				mi_pool_free		(mi_pool_t *pool);
+static mi_pool_t *    
+mi_pool_create (muint32 node_size, muint32 node_count, void *ctx);
 
-static void*			mi_mem_alloc		(mi_pool_t *pool, muint32 size);
-static void				mi_mem_free			(void *data);
-static void*            mi_mem_alloc_ex     (mi_pool_t *pool, muint32 size, void ( *func )(void*, muint32));
+static mi_pool_t *    
+mi_pool_alloc (mi_pool_t *parent, muint32 node_size, muint32 node_count);
 
-static mi_lock_t*		mi_lock_create		(void);
-static void				mi_lock_delete		(mi_lock_t *lock);
-static void				mi_lock_lock		(mi_lock_t *lock, ENUM_RWLOCK mode);
-static void				mi_lock_unlock		(mi_lock_t *lock);
+static void          
+mi_pool_free (mi_pool_t *pool);
 
-mi_pool_op*				create_mi_pool_op_default(void);
-mi_mem_op*				create_mi_mem_op_default(void);
-mi_lock_op*				create_mi_lock_op_default(void);
+static void *         
+mi_mem_alloc (mi_pool_t *pool, muint32 size);
+
+static void
+mi_mem_free  (void *data);
+
+static void *
+mi_mem_alloc_ex (mi_pool_t *pool, muint32 size, void ( *func )(void*, muint32));
+
+static mi_lock_t *
+mi_lock_create (void);
+
+static void
+mi_lock_delete (mi_lock_t *lock);
+
+static void
+mi_lock_lock (mi_lock_t *lock, ENUM_RWLOCK mode);
+
+static void
+mi_lock_unlock (mi_lock_t *lock);
+
+mi_pool_op *
+create_mi_pool_op_default(void);
+
+mi_mem_op *
+create_mi_mem_op_default(void);
+
+mi_lock_op *
+create_mi_lock_op_default(void);
 
 struct _mi_mem_node_head_t;
 typedef struct _mi_mem_node_head_t _mi_mem_node_head_t; 
@@ -117,7 +139,8 @@ struct _mi_mem_node_head_t
 #define TRACE_FUNC \
 	do { \
 		if (UNIT_TEST) \
-		MI_LOG("\t\tcall into %s, %d, %s\n", __FUNCTION__, __LINE__, __FILE__); \
+		MI_LOG("\t\tcall into %s, %d, %s\n",\
+               __FUNCTION__, __LINE__, __FILE__);\
 	} while(0)
 #endif
 
@@ -130,7 +153,8 @@ struct _mi_mem_node_head_t
 			(x) += DEFAULT_MI_MEM_NODE_SIZE - ((x)% DEFAULT_MI_MEM_NODE_SIZE); \
 	} while(0)
 
-inline static void TEST_PRINT (const char* x, ...)
+inline static 
+void TEST_PRINT (const char* x, ...)
 {
 #if UNIT_TEST
 	va_list arg;
@@ -141,7 +165,8 @@ inline static void TEST_PRINT (const char* x, ...)
 #endif
 }
 
-inline static void _free_mem_node_list(mi_mem_node_list_t *list)
+inline static 
+void _free_mem_node_list (mi_mem_node_list_t *list)
 {
 	TRACE_FUNC;
 	RET_IF_NULL(list);
@@ -153,7 +178,8 @@ inline static void _free_mem_node_list(mi_mem_node_list_t *list)
 }
 
 /* cut a new memory node from a exist memory node */
-inline static mi_mem_node_t* _mem_node_cut (mi_mem_node_t *node)
+inline static 
+mi_mem_node_t* _mem_node_cut (mi_mem_node_t *node)
 {
 	mi_mem_node_t *new_node = NULL;
 
@@ -175,20 +201,24 @@ inline static mi_mem_node_t* _mem_node_cut (mi_mem_node_t *node)
 	new_node->parent = node;	
 	new_node->pool = node->pool;
 	new_node->data = node->data + node->free_index;
-	new_node->curr_size = new_node->orig_size = node->curr_size - node->free_index;
+
+    new_node->orig_size = node->curr_size - node->free_index;
+    new_node->curr_size = new_node->orig_size
 	node->curr_size = node->free_index;
 
 	return new_node;
 }
 
-inline static mi_mem_node_t* _fetch_free_mem_node(mi_pool_t *pool, muint32 size)
+inline static mi_mem_node_t * 
+_fetch_free_mem_node (mi_pool_t *pool, muint32 size)
 {
 	mi_mem_node_list_t *list = NULL;	
 	mi_mem_node_t *node = NULL;
 	mi_mem_node_t *new_node = NULL;
 
 	TRACE_FUNC;
-	TEST_PRINT("%s pool: 0x%08X, size: %lu", __FUNCTION__, pool, size);
+	TEST_PRINT("%s pool: 0x%08X, size: %lu", 
+               __FUNCTION__, pool, size);
 	RETV_IF_FALSE(pool && size > 0, NULL);
 	
 	list = pool->data;
@@ -212,7 +242,8 @@ inline static mi_mem_node_t* _fetch_free_mem_node(mi_pool_t *pool, muint32 size)
 	return NULL;
 }
 
-inline static mi_mem_node_list_t* _create_mem_node_list(mi_pool_t *pool, muint32 size)
+inline static mi_mem_node_list_t *
+_create_mem_node_list (mi_pool_t *pool, muint32 size)
 {
 	mi_mem_node_t *mnode = NULL;
 	mi_mem_node_list_t *mnlist = NULL;
@@ -243,7 +274,8 @@ inline static mi_mem_node_list_t* _create_mem_node_list(mi_pool_t *pool, muint32
 	return mnlist;
 }
 
-static mi_pool_t* mi_pool_create (muint32 node_size, muint32 node_count, void *ctx)
+static mi_pool_t * 
+mi_pool_create (muint32 node_size, muint32 node_count, void *ctx)
 {
 	mi_pool_t *pool = NULL;
 	mi_mem_node_list_t *mnlist = NULL;
@@ -263,7 +295,8 @@ static mi_pool_t* mi_pool_create (muint32 node_size, muint32 node_count, void *c
 }
 
 
-static mi_pool_t* mi_pool_alloc	(mi_pool_t *parent, muint32 node_size, muint32 node_count)
+static mi_pool_t * 
+mi_pool_alloc (mi_pool_t *parent, muint32 node_size, muint32 node_count)
 {
 	muint32 alloc_size = node_size * node_count;
 	mi_mem_node_list_t *list = NULL;
@@ -415,14 +448,16 @@ static void mi_pool_free (mi_pool_t *pool)
 	}
 }
 
-static void* mi_mem_alloc (mi_pool_t *pool, muint32 size)
+static void * 
+mi_mem_alloc (mi_pool_t *pool, muint32 size)
 {
 	return mi_mem_alloc_ex(pool, size, NULL);
 }
 
-static void* mi_mem_alloc_ex (mi_pool_t *pool, 
-                              muint32 size, 
-                              void ( *func )(void*, muint32))
+static void * 
+mi_mem_alloc_ex (mi_pool_t *pool, 
+                 muint32 size, 
+                 void ( *func )(void*, muint32))
 {
 	mi_mem_node_t *new_node = NULL;
 	mi_mem_node_list_t *new_node_list = NULL;	
@@ -495,32 +530,37 @@ done:
 	TRY_UNLOCK(pool->lock, pool->lock_op);
 }
 
-static mi_lock_t* mi_lock_create (void)
+static mi_lock_t * 
+mi_lock_create (void)
 {
 	TRACE_FUNC;
 	TEST_PRINT("mi_lock_create: not implemented");
 	return NULL;	
 }
 
-static void	 mi_lock_delete (mi_lock_t *lock) 
+static void	 
+mi_lock_delete (mi_lock_t *lock) 
 {
 	TRACE_FUNC;
 	TEST_PRINT("mi_lock_delete: not implemented");
 }
 
-static void mi_lock_lock (mi_lock_t *lock, ENUM_RWLOCK mode)
+static void 
+mi_lock_lock (mi_lock_t *lock, ENUM_RWLOCK mode)
 {
 	TRACE_FUNC;
 	TEST_PRINT("mi_lock_lock: not implemented");
 }
 
-static void mi_lock_unlock (mi_lock_t *lock)
+static void 
+mi_lock_unlock (mi_lock_t *lock)
 {
-	TRACE_FUNC;
-	TEST_PRINT("mi_lock_unlock: not implemented");
+    TRACE_FUNC;
+    TEST_PRINT("mi_lock_unlock: not implemented");
 }
 
-mi_pool_op* create_mi_pool_op_default(void)
+mi_pool_op *
+create_mi_pool_op_default(void)
 {
 	static mi_pool_op *plop = NULL;
 	static mi_pool_op splop;
@@ -536,7 +576,8 @@ mi_pool_op* create_mi_pool_op_default(void)
 	return plop;
 }
 
-mi_mem_op* create_mi_mem_op_default(void)
+mi_mem_op *
+create_mi_mem_op_default(void)
 {
 	static mi_mem_op *mop = NULL;
 	static mi_mem_op smop;
@@ -553,7 +594,8 @@ mi_mem_op* create_mi_mem_op_default(void)
 }
 
 
-mi_lock_op* create_mi_lock_op_default(void)
+mi_lock_op *
+create_mi_lock_op_default(void)
 {
 	static mi_lock_op *lop = NULL;
 	static mi_lock_op slop;
@@ -570,7 +612,8 @@ mi_lock_op* create_mi_lock_op_default(void)
 	return lop;
 }
 
-static void _show_mem_node (mi_mem_node_t *node)
+static void 
+_show_mem_node(mi_mem_node_t *node)
 {
 	mi_mem_node_t *anode = node;
     _mi_mem_node_head_t *head;
@@ -579,34 +622,39 @@ static void _show_mem_node (mi_mem_node_t *node)
 	
 	while (anode) {
         if (anode->free_index > 0) {
-		    MI_LOG("mem_node: fi: %d, cs: %d, os: %d, dt: 0x%08X, child :0x%08X\n",
-			    	anode->free_index,
-					anode->curr_size,
-					anode->orig_size,
-					(muint32)anode->data,
-					(muint32)anode->child);
+		    MI_LOG(
+                "mem_node: fi: %d, cs: %d, os: %d, dt: 0x%08X, child :0x%08X\n",
+                anode->free_index,
+                anode->curr_size,
+                anode->orig_size,
+                (muint32)anode->data,
+                (muint32)anode->child);
 
 	        head = (_mi_mem_node_head_t*)anode->data;
-            if (head && anode->func) anode->func(head->data, anode->free_index+1);
+            if (head && anode->func) 
+                anode->func(head->data, anode->free_index+1);
         }
 		anode = anode->child;
 	}
 }
 
-void _show_mem_node_list (mi_mem_node_list_t *list)
+void 
+_show_mem_node_list (mi_mem_node_list_t *list)
 {
 	mi_mem_node_list_t *alist = list;
 
 	RET_IF_NULL(list);	
 
 	while (alist) {
-		MI_LOG("mem_node_list: data: 0x%08X, next: 0x%08X\n", (muint32)alist->data, (muint32)alist->next);
+		MI_LOG(
+            "mem_node_list: data: 0x%08X, next: 0x%08X\n",
+            (muint32)alist->data, (muint32)alist->next);
 		_show_mem_node(alist->data);
 		alist = alist->next;	
 	}
 }
 
-void view_simple_pool (mi_pool_t *root)
+void view_simple_pool(mi_pool_t *root)
 {
 	mi_pool_list_t *child_list;
 	mi_mem_node_list_t *node_list;
@@ -614,8 +662,13 @@ void view_simple_pool (mi_pool_t *root)
 	TRACE_FUNC;
 	RET_IF_NULL(root);
 
-	MI_LOG("pool: pt: 0x%08X, cd: 0x%08X, dt: 0x%08X, lk: 0x%08X, lo: 0x%08X\n",
-				(muint32)root->parent, (muint32)root->child, (muint32)root->data, (muint32)root->lock, (muint32)root->lock_op);
+	MI_LOG(
+         "pool: pt: 0x%08X, cd: 0x%08X, dt: 0x%08X, lk: 0x%08X, lo: 0x%08X\n",
+         (muint32)root->parent, 
+         (muint32)root->child, 
+         (muint32)root->data, 
+         (muint32)root->lock,
+         (muint32)root->lock_op);
 
 	node_list = root->data;
 	_show_mem_node_list(node_list);

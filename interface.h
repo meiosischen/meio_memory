@@ -27,96 +27,107 @@
 #include "./define.h"
 
 struct mi_mem_node_t;
-typedef struct mi_mem_node_t	mi_mem_node_t;
+typedef struct mi_mem_node_t        mi_mem_node_t;
 
 struct mi_mem_node_list_t;
-typedef struct mi_mem_node_list_t mi_mem_node_list_t;
+typedef struct mi_mem_node_list_t   mi_mem_node_list_t;
 
 struct mi_pool_t;
-typedef struct mi_pool_t		mi_pool_t;
+typedef struct mi_pool_t            mi_pool_t;
 
 struct mi_pool_list_t;
-typedef struct mi_pool_list_t	mi_pool_list_t;
+typedef struct mi_pool_list_t       mi_pool_list_t;
 
 struct mi_lock_op;
-typedef struct mi_lock_op		mi_lock_op;
+typedef struct mi_lock_op           mi_lock_op;
 
 struct mi_mem_op;
-typedef struct mi_mem_op		mi_mem_op;
+typedef struct mi_mem_op            mi_mem_op;
 
 struct mi_pool_op;
-typedef struct mi_pool_op		mi_pool_op;
+typedef struct mi_pool_op           mi_pool_op;
 
 struct mi_mem_node_op;
-typedef struct mi_mem_node_op	mi_mem_node_op;
+typedef struct mi_mem_node_op       mi_mem_node_op;
 
 struct mi_mem_node_t
 {
-	mi_pool_t			*pool;
-	mi_mem_node_t		*parent;
-	mi_mem_node_t		*child;
-	muint32				free_index;
-	mbyte				*data;
-	muint32				curr_size;
-	muint32				orig_size;
+    mi_pool_t			*pool;
+    mi_mem_node_t		*parent;
+    mi_mem_node_t		*child;
+    muint32				free_index;
+    mbyte				*data;
+    muint32				curr_size;
+    muint32				orig_size;
     void                (*func)(void*,muint32);
 };
 
 struct mi_mem_node_list_t
 {
-	mi_mem_node_list_t	*next;
-	mi_mem_node_t		*data;
+    mi_mem_node_list_t  *next;
+    mi_mem_node_t       *data;
 };
 
 struct mi_pool_t
 {
-	mi_pool_t			*parent;
-	mi_pool_list_t		*child;
-	mi_mem_node_list_t	*data;
-	mi_lock_t			*lock;
-	mi_lock_op			*lock_op;
+    mi_pool_t           *parent;
+    mi_pool_list_t      *child;
+    mi_mem_node_list_t  *data;
+    mi_lock_t           *lock;
+    mi_lock_op          *lock_op;
 };
 
 struct mi_pool_list_t
 {
-	mi_pool_list_t		*next;
-	mi_pool_t			*data;
+    mi_pool_list_t      *next;
+    mi_pool_t           *data;
 };
 
 struct mi_lock_op
 {
-	mi_lock_t*			( *create )(void);
-	void				( *delete )(mi_lock_t *lock);
-	void				( *lock )(mi_lock_t *lock, ENUM_RWLOCK mode);
-	void				( *unlock )(mi_lock_t *lock);
+    mi_lock_t*          ( *create )(void);
+    
+    void                ( *delete )(mi_lock_t *lock);
+    
+    void                ( *lock )(mi_lock_t *lock, ENUM_RWLOCK mode);
+    
+    void                ( *unlock )(mi_lock_t *lock);
 };
 
 struct mi_pool_op
 {
-	mi_pool_t*			( *create )(muint32 node_size, 
-                                    muint32 node_count, void *ctx);
-	mi_pool_t*			( *alloc )(mi_pool_t *parent, 
+    mi_pool_t *         ( *create )(muint32 node_size, 
+                                    muint32 node_count, 
+                                    void *ctx);
+    
+    mi_pool_t *         ( *alloc )(mi_pool_t *parent, 
                                    muint32 node_size, 
                                    muint32 node_count);
-	void				( *free )(mi_pool_t *pool);
+    
+    void                ( *free )(mi_pool_t *pool);
 };
 
 struct mi_mem_op
 {
-	void*				( *alloc )(mi_pool_t *pool, muint32 size);
-	void				( *free )(void *data);
-    void*               ( *alloc_ex )(mi_pool_t *pool, 
-                                      muint32 size, 
-                                      void ( *func )(void*, muint32));
+	void *              ( *alloc )(mi_pool_t *pool, muint32 size);
+	void                ( *free )(void *data);
+    void *              ( *alloc_ex )(mi_pool_t *pool, 
+                                     muint32 size, 
+                                     void (*func)(void*, muint32));
 };
 
 /* to create operation objects */
 /* pool operation */
-mi_pool_op*		 create_mi_pool_op_default(void);
+mi_pool_op *
+create_mi_pool_op_default(void);
+
 /* memory allocator operation */
-mi_mem_op*		 create_mi_mem_op_default(void);
+mi_mem_op *
+create_mi_mem_op_default(void);
+
 /* currently, default mi_lock_op does nothing but prints a message */
-mi_lock_op*		 create_mi_lock_op_default(void);
+mi_lock_op *
+create_mi_lock_op_default(void);
 
 /* to view the pool's layout */
 void view_simple_pool (mi_pool_t *root);
