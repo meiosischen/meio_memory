@@ -96,15 +96,15 @@ struct mi_lock_op
 
 struct mi_pool_op
 {
-    mi_pool_t *         ( *create )(muint32 node_size, 
+    mi_pool_t *         (*create)(muint32 node_size, 
                                     muint32 node_count, 
                                     void *ctx);
     
-    mi_pool_t *         ( *alloc )(mi_pool_t *parent, 
+    mi_pool_t *         (*alloc)(mi_pool_t *parent, 
                                    muint32 node_size, 
                                    muint32 node_count);
     
-    void                ( *free )(mi_pool_t *pool);
+    void                (*free)(mi_pool_t *pool);
 };
 
 struct mi_mem_op
