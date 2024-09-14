@@ -1,7 +1,7 @@
 meio_memory
 ===========
 
-a simple memory pool library of C supports monitoring memory pool's layout and nodes' status
+A simple C memory pool library supports monitoring the layout of memory pools and the status of nodes
 
 How to use: 
 
